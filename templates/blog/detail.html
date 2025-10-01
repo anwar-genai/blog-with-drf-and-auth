@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}{{ post.title }}{% endblock %}
+{% block content %}
+  <div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+      <h1 class="mb-1">{{ post.title }}</h1>
+      <div class="text-secondary small">by {{ post.author.username }} • {{ post.created_at|date:"M d, Y H:i" }}</div>
+    </div>
+    <div>
+      {% if request.user.is_authenticated %}
+        <form method="post" action="/blog/post/{{ post.slug }}/like-toggle/">
+          {% csrf_token %}
+          <button class="btn btn-outline-danger" type="submit">{% if request.user in post.likes.all %}Unlike{% else %}Like{% endif %} ({{ post.likes_count }})</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="mb-4">
+    <p>{{ post.content|linebreaks }}</p>
+    {% if request.user == post.author %}
+      <a class="btn btn-outline-primary btn-sm" href="/blog/post/{{ post.slug }}/edit/">Edit</a>
+      <a class="btn btn-outline-danger btn-sm" href="/blog/post/{{ post.slug }}/delete/">Delete</a>
+    {% endif %}
+  </div>
+
+  <h4 class="mb-3">Comments</h4>
+  <div class="mb-3">
+    {% for comment in post.comments.all %}
+      <div class="border rounded p-2 mb-2">
+        <div class="small text-secondary mb-1">{{ comment.author.username }} • {{ comment.created_at|date:"M d, Y H:i" }}</div>
+        <div>{{ comment.content|linebreaks }}</div>
+      </div>
+    {% empty %}
+      <p class="text-secondary">No comments yet.</p>
+    {% endfor %}
+  </div>
+
+  {% if request.user.is_authenticated %}
+    <form method="post" action="/blog/post/{{ post.slug }}/comment/">
+      {% csrf_token %}
+      {{ comment_form.as_p }}
+      <button class="btn btn-primary" type="submit">Add Comment</button>
+    </form>
+  {% else %}
+    <p><a href="/accounts/login/">Login</a> to comment.</p>
+  {% endif %}
+{% endblock %}
+
+
