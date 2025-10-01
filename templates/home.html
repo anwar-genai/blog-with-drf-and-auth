@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}Home{% endblock %}
+{% block content %}
+  <div class="p-5 mb-4 bg-light rounded-3">
+    <div class="container-fluid py-5">
+      <h1 class="display-5 fw-bold">Welcome to the Blog Project</h1>
+      <p class="col-md-8 fs-5">A clean Django starter with accounts, blog, follows, chat, and API.
+      Explore the sections using the navbar.</p>
+      <a class="btn btn-primary btn-lg" href="/blog/">Go to Blog</a>
+    </div>
+  </div>
+  <div class="row g-4">
+    <div class="col-md-3">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title">Accounts</h5>
+          <p class="card-text">Sign up, login, and manage your profile.</p>
+          <a href="/accounts/" class="card-link">Open</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title">Blog</h5>
+          <p class="card-text">Posts, comments, and likes.</p>
+          <a href="/blog/" class="card-link">Open</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title">Follows</h5>
+          <p class="card-text">Follow users and see their posts.</p>
+          <a href="/follows/" class="card-link">Open</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title">Chat</h5>
+          <p class="card-text">Direct messages between users.</p>
+          <a href="/chat/" class="card-link">Open</a>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+

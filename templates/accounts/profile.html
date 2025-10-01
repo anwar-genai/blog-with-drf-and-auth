@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}My Profile{% endblock %}
+{% block content %}
+  <h1>My Profile</h1>
+  <div class="row g-4">
+    <div class="col-md-3">
+      {% if request.user.profile.avatar %}
+        <img class="img-fluid rounded" src="{{ request.user.profile.avatar.url }}" alt="avatar">
+      {% else %}
+        <div class="bg-secondary-subtle text-secondary d-flex align-items-center justify-content-center rounded" style="height:160px;">No avatar</div>
+      {% endif %}
+    </div>
+    <div class="col-md-9">
+      <p><strong>Username:</strong> {{ request.user.username }}</p>
+      <p><strong>Email:</strong> {{ request.user.email }}</p>
+      <p><strong>Bio:</strong> {{ request.user.profile.bio|default:'—' }}</p>
+      <a class="btn btn-outline-primary" href="/accounts/profile/edit/">Edit profile</a>
+    </div>
+  </div>
+{% endblock %}
+
+
