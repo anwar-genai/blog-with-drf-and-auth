@@ -1,0 +1,48 @@
+/* Editor/content presentation tweaks */
+.ck-editor__editable_inline {
+  border-top: 2px solid #0d6efd !important; /* top border emphasis */
+  border-left: 0 !important;
+  border-right: 0 !important;
+  border-bottom: 0 !important;
+  background: #fff;
+  padding: 1rem !important;
+  min-height: 240px;
+}
+
+.ck.ck-toolbar {
+  border: 0 !important;
+  background: #fff;
+}
+
+/* CKEditor 4 fallback classes */
+.cke_chrome { border: 0 !important; box-shadow: none !important; }
+.cke_top { border: 0 !important; background: #fff !important; }
+.cke_contents { border-top: 2px solid #0d6efd !important; }
+
+/* Rendered content style */
+.post-content img { max-width: 100%; height: auto; border-radius: .25rem; }
+.post-content h1, .post-content h2, .post-content h3 { margin-top: 1rem; }
+
+/* Align title width with editor and remove borders */
+.post-title-input {
+  border: 0 !important;
+  border-bottom: 2px solid #0d6efd !important;
+  border-radius: 0 !important;
+  font-size: 1.75rem; /* larger title */
+  font-weight: 600;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.post-title-input:focus {
+  box-shadow: none !important;
+}
+
+/* Constrain the form to a reasonable max width */
+.post-form-container {
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+

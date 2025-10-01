@@ -29,6 +29,7 @@ urlpatterns = [
     path('follows/', include('follows.urls', namespace='follows')),
     path('chat/', include('chat.urls', namespace='chat')),
     path('api/', include('api.urls', namespace='api')),
+    path('ckeditor/', include('ckeditor_uploader.urls')),
 ]
 
 if settings.DEBUG:

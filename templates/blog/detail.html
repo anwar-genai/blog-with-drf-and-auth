@@ -17,7 +17,7 @@
   </div>
 
   <div class="mb-4">
-    <p>{{ post.content|linebreaks }}</p>
+    <div>{{ post.content|safe }}</div>
     {% if request.user == post.author %}
       <a class="btn btn-outline-primary btn-sm" href="/blog/post/{{ post.slug }}/edit/">Edit</a>
       <a class="btn btn-outline-danger btn-sm" href="/blog/post/{{ post.slug }}/delete/">Delete</a>

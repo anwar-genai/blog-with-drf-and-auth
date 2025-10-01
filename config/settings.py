@@ -53,6 +53,8 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+    'ckeditor',
+    'ckeditor_uploader',
 ]
 
 MIDDLEWARE = [
@@ -136,9 +138,35 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 
+# Where collectstatic will gather files for deployment
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
 # Media files (user uploads)
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# CKEditor configuration
+CKEDITOR_UPLOAD_PATH = 'uploads/'
+CKEDITOR_IMAGE_BACKEND = 'pillow'
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'Custom',
+        'toolbar_Custom': [
+            ['Format', '-', 'Bold', 'Italic', 'Underline', '-', 'NumberedList', 'BulletedList', '-', 'Blockquote', '-', 'Link', 'Unlink', '-', 'Image', 'Table', '-', 'RemoveFormat', 'Source']
+        ],
+        'height': 300,
+        'width': '100%',
+        'extraPlugins': ','.join([
+            'uploadimage',  # the upload image feature
+            'image2',       # enhanced image plugin
+            'justify',
+        ]),
+        'removePlugins': 'elementspath,resize',
+        'uiColor': '#ffffff',
+        'allowedContent': True,
+        'contentsCss': ['/static/site.css'],
+    }
+}
 
 # Authentication redirects
 LOGIN_URL = 'accounts:login'

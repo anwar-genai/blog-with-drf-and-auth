@@ -40,7 +40,7 @@ def create(request: HttpRequest) -> HttpResponse:
             post.author = request.user
             post.save()
             messages.success(request, 'Post created!')
-            return redirect('blog:detail', pk=post.pk)
+            return redirect('blog:detail', slug=post.slug)
     else:
         form = PostForm()
     return render(request, 'blog/form.html', { 'form': form, 'title': 'Create Post' })
@@ -56,7 +56,7 @@ def edit(request: HttpRequest, slug: str) -> HttpResponse:
         if form.is_valid():
             form.save()
             messages.success(request, 'Post updated!')
-            return redirect('blog:detail', pk=post.pk)
+            return redirect('blog:detail', slug=post.slug)
     else:
         form = PostForm(instance=post)
     return render(request, 'blog/form.html', { 'form': form, 'title': 'Edit Post' })
