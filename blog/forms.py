@@ -1,5 +1,5 @@
 from django import forms
-from ckeditor_uploader.widgets import CKEditorUploadingWidget
+from .widgets import CustomCKEditorWidget
 from .models import Post, Comment
 
 
@@ -13,7 +13,7 @@ class PostForm(forms.ModelForm):
                 'placeholder': 'Post title',
                 'autocomplete': 'off',
             }),
-            'content': CKEditorUploadingWidget(config_name='default'),
+            'content': CustomCKEditorWidget(config_name='default'),
         }
 
 

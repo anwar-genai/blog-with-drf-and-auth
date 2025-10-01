@@ -150,23 +150,23 @@ CKEDITOR_UPLOAD_PATH = 'uploads/'
 CKEDITOR_IMAGE_BACKEND = 'pillow'
 CKEDITOR_CONFIGS = {
     'default': {
-        'toolbar': 'Custom',
-        'toolbar_Custom': [
-            ['Format', '-', 'Bold', 'Italic', 'Underline', '-', 'NumberedList', 'BulletedList', '-', 'Blockquote', '-', 'Link', 'Unlink', '-', 'Image', 'Table', '-', 'RemoveFormat', 'Source']
+        'toolbar': [
+            ['Format', 'Bold', 'Italic', 'Underline', '-', 'NumberedList', 'BulletedList', '-', 'Blockquote', '-', 'Link', 'Unlink', 'Table', '-', 'RemoveFormat', 'Source']
         ],
         'height': 300,
         'width': '100%',
-        'extraPlugins': ','.join([
-            'uploadimage',  # the upload image feature
-            'image2',       # enhanced image plugin
-            'justify',
-        ]),
         'removePlugins': 'elementspath,resize',
         'uiColor': '#ffffff',
-        'allowedContent': True,
-        'contentsCss': ['/static/site.css'],
+        'allowedContent': True
     }
 }
+
+# CKEditor uploader behavior
+CKEDITOR_RESTRICT_BY_USER = False
+CKEDITOR_UPLOAD_SLUGIFY_FILENAME = True
+
+# Allow CKEditor upload iframe to work
+X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 # Authentication redirects
 LOGIN_URL = 'accounts:login'

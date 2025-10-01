@@ -19,6 +19,17 @@
 .cke_top { border: 0 !important; background: #fff !important; }
 .cke_contents { border-top: 2px solid #0d6efd !important; }
 
+/* Ensure CKEditor spans the same width as the title input */
+.django-ckeditor-widget,
+.cke_chrome,
+.cke_inner,
+.cke_contents,
+.ck-editor,
+.ck-editor__main {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
 /* Rendered content style */
 .post-content img { max-width: 100%; height: auto; border-radius: .25rem; }
 .post-content h1, .post-content h2, .post-content h3 { margin-top: 1rem; }

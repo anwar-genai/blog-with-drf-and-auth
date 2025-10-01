@@ -4,7 +4,7 @@
 {% block content %}
   <div class="post-form-container">
   <h1 class="mb-4">{{ title }}</h1>
-  <form method="post">
+  <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form.media }}
     {{ form|crispy }}
