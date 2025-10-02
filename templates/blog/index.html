@@ -1,8 +1,18 @@
 {% extends 'base.html' %}
 {% block title %}Blog{% endblock %}
 {% block content %}
-  <div class="d-flex justify-content-between align-items-center mb-3">
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
     <h1 class="mb-0">Latest</h1>
+    <form method="get" class="d-flex gap-2" role="search">
+      <input type="search" class="form-control" name="q" placeholder="Search..." value="{{ request.GET.q }}">
+      <select class="form-select" name="type">
+        <option value="">All</option>
+        <option value="article" {% if request.GET.type == 'article' %}selected{% endif %}>Articles</option>
+        <option value="post" {% if request.GET.type == 'post' %}selected{% endif %}>Posts</option>
+        <option value="poll" {% if request.GET.type == 'poll' %}selected{% endif %}>Polls</option>
+      </select>
+      <button class="btn btn-outline-secondary" type="submit">Filter</button>
+    </form>
     {% if request.user.is_authenticated %}
       <div class="btn-group">
         <a class="btn btn-outline-primary" href="/blog/post/new/article/">New Article</a>

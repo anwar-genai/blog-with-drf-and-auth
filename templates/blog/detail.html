@@ -4,7 +4,12 @@
   <div class="d-flex justify-content-between align-items-start mb-3">
     <div>
       <h1 class="mb-1">{{ post.title }}</h1>
-      <div class="text-secondary small">by {{ post.author.username }} • {{ post.created_at|date:"M d, Y H:i" }}</div>
+      <div class="text-secondary small d-flex align-items-center gap-2">
+        {% if post.author.profile and post.author.profile.avatar %}
+          <img src="{{ post.author.profile.avatar.url }}" alt="avatar" class="rounded-circle" width="24" height="24">
+        {% endif %}
+        <span>by {{ post.author.username }} • {{ post.created_at|date:"M d, Y H:i" }}</span>
+      </div>
     </div>
     <div>
       {% if request.user.is_authenticated %}
@@ -92,9 +97,18 @@
   <h4 class="mb-3">Comments</h4>
   <div class="mb-3">
     {% for comment in post.comments.all %}
-      <div class="comment-card p-3 mb-2">
-        <div class="meta mb-1">{{ comment.author.username }} • {{ comment.created_at|date:"M d, Y H:i" }}</div>
-        <div>{{ comment.content|linebreaks }}</div>
+      <div class="comment-card p-3 mb-2 d-flex gap-2">
+        <div>
+          {% if comment.author.profile and comment.author.profile.avatar %}
+            <img src="{{ comment.author.profile.avatar.url }}" alt="avatar" class="rounded-circle" width="36" height="36">
+          {% else %}
+            <div class="rounded-circle bg-secondary-subtle" style="width:36px;height:36px;"></div>
+          {% endif %}
+        </div>
+        <div class="flex-grow-1">
+          <div class="meta mb-1">{{ comment.author.username }} • {{ comment.created_at|date:"M d, Y H:i" }}</div>
+          <div>{{ comment.content|linebreaks }}</div>
+        </div>
       </div>
     {% empty %}
       <p class="text-secondary">No comments yet.</p>

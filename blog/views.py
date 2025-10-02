@@ -15,6 +15,12 @@ from .forms import (
 
 def index(request: HttpRequest) -> HttpResponse:
     qs = Post.objects.select_related('author').prefetch_related('likes').all()
+    q = request.GET.get('q', '').strip()
+    t = request.GET.get('type', '').strip()
+    if q:
+        qs = qs.filter(title__icontains=q) | qs.filter(content__icontains=q)
+    if t in ['article', 'post', 'poll']:
+        qs = qs.filter(type=t)
     paginator = Paginator(qs, 15)
     page = request.GET.get('page')
     try:

@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="{% static 'site.css' %}">
   </head>
   <body>
-    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+    <nav class="navbar navbar-expand-lg bg-body-tertiary sticky-top border-bottom">
       <div class="container-fluid">
         <a class="navbar-brand" href="/">Blog</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
@@ -17,7 +17,7 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-            <li class="nav-item"><a class="nav-link" href="/blog/">Blog</a></li>
+            <li class="nav-item"><a class="nav-link {% if request.path|slice:":6" == '/blog/' %}active{% endif %}" href="/blog/">Blog</a></li>
             <li class="nav-item"><a class="nav-link" href="/follows/">Follows</a></li>
             <li class="nav-item"><a class="nav-link" href="/chat/">Chat</a></li>
             <li class="nav-item"><a class="nav-link" href="/api/">API</a></li>
@@ -26,6 +26,9 @@
             {% if user.is_authenticated %}
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  {% if user.profile and user.profile.avatar %}
+                    <img src="{{ user.profile.avatar.url }}" alt="avatar" class="rounded-circle me-2" width="24" height="24">
+                  {% endif %}
                   {{ user.username }}
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
