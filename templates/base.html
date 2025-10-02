@@ -17,10 +17,11 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-            <li class="nav-item"><a class="nav-link {% if request.path|slice:":6" == '/blog/' %}active{% endif %}" href="/blog/">Blog</a></li>
-            <li class="nav-item"><a class="nav-link" href="/follows/">Follows</a></li>
-            <li class="nav-item"><a class="nav-link" href="/chat/">Chat</a></li>
-            <li class="nav-item"><a class="nav-link" href="/api/">API</a></li>
+            <li class="nav-item"><a class="nav-link {% if request.path == '/' %}active{% endif %}" href="/">Following</a></li>
+            <li class="nav-item"><a class="nav-link {% if request.path|slice:":6" == '/blog/' %}active{% endif %}" href="/blog/">Explore</a></li>
+            <li class="nav-item"><a class="nav-link {% if request.path|slice:":9" == '/follows/' %}active{% endif %}" href="/follows/">Follows</a></li>
+            <li class="nav-item"><a class="nav-link {% if request.path|slice:":6" == '/chat/' %}active{% endif %}" href="/chat/">Chat</a></li>
+            <li class="nav-item"><a class="nav-link {% if request.path|slice:":5" == '/api/' %}active{% endif %}" href="/api/">API</a></li>
           </ul>
           <ul class="navbar-nav ms-auto">
             {% if user.is_authenticated %}
@@ -48,11 +49,26 @@
     </nav>
     <main class="container py-5">
       {% if messages %}
-        <div class="mb-3">
-          {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}" role="alert">{{ message }}</div>
-          {% endfor %}
+        <div class="position-fixed top-0 end-0 p-3" style="z-index: 1080">
+          <div id="toast-container">
+            {% for message in messages %}
+              <div class="toast align-items-center text-bg-{{ message.tags|default:'primary' }} border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="2500">
+                <div class="d-flex">
+                  <div class="toast-body">{{ message }}</div>
+                  <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
         </div>
+        <script>
+          (function(){
+            const container = document.getElementById('toast-container');
+            if(!container) return;
+            const toasts = container.querySelectorAll('.toast');
+            toasts.forEach(t => (new bootstrap.Toast(t)).show());
+          })();
+        </script>
       {% endif %}
       {% block content %}{% endblock %}
     </main>

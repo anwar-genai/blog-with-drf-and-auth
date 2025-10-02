@@ -3,8 +3,8 @@
 {% block content %}
   <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
     <h1 class="mb-0">Latest</h1>
-    <form method="get" class="d-flex gap-2" role="search">
-      <input type="search" class="form-control" name="q" placeholder="Search..." value="{{ request.GET.q }}">
+    <form method="get" class="d-flex gap-2" role="search" id="search-form">
+      <input type="search" class="form-control" name="q" id="search-input" placeholder="Search..." value="{{ request.GET.q }}">
       <select class="form-select" name="type">
         <option value="">All</option>
         <option value="article" {% if request.GET.type == 'article' %}selected{% endif %}>Articles</option>
@@ -41,6 +41,14 @@
         </div>
         {% if post.type == 'poll' %}
           <div class="small text-secondary">Poll • {{ post.poll_options.count }} options</div>
+          <ul class="small text-secondary mb-2">
+            {% for opt in post.poll_options.all|slice:':3' %}
+              <li>{{ opt.text }}</li>
+            {% endfor %}
+            {% if post.poll_options.count > 3 %}
+              <li>+{{ post.poll_options.count|add:'-3' }} more…</li>
+            {% endif %}
+          </ul>
         {% else %}
           <p class="card-text">{{ post.content|striptags|truncatewords:40 }}</p>
         {% endif %}
@@ -75,6 +83,16 @@
       </ul>
     </nav>
   {% endif %}
+  <script>
+    (function(){
+      const input = document.getElementById('search-input');
+      const form = document.getElementById('search-form');
+      if(!input || !form) return;
+      let t=null; input.addEventListener('input', function(){
+        clearTimeout(t); t = setTimeout(()=> form.submit(), 400);
+      });
+    })();
+  </script>
 {% endblock %}
 
 

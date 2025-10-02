@@ -33,6 +33,6 @@ python manage.py collectstatic --noinput
 - Votes update live; results bars show counts/percent.
 
 ### Changelog
-- [UI] Avatars in navbar/comments; sticky header with active nav; search + type filters on blog index.
+- [UI] Avatars in navbar/comments; sticky header; active nav for all links; Bootstrap toasts for messages; blog search with debounce and type filters; poll option preview in lists; card/badge polish.
 
 

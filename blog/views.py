@@ -11,10 +11,12 @@ from .forms import (
     StatusPostForm,
     PollPostForm,
 )
+from follows.models import Follow
+from django.db.utils import OperationalError
 
 
 def index(request: HttpRequest) -> HttpResponse:
-    qs = Post.objects.select_related('author').prefetch_related('likes').all()
+    qs = Post.objects.select_related('author').prefetch_related('likes', 'poll_options').all()
     q = request.GET.get('q', '').strip()
     t = request.GET.get('type', '').strip()
     if q:
@@ -33,8 +35,19 @@ def index(request: HttpRequest) -> HttpResponse:
 
 
 def home(request: HttpRequest) -> HttpResponse:
-    latest_posts = Post.objects.select_related('author').prefetch_related('likes').all()[:5]
-    return render(request, 'home.html', { 'posts': latest_posts })
+    # Following feed: posts by users current user follows
+    posts = Post.objects.select_related('author').prefetch_related('likes')
+    if request.user.is_authenticated:
+        try:
+            following_ids = Follow.objects.filter(follower=request.user).values_list('following_id', flat=True)
+            posts = posts.filter(author_id__in=following_ids)
+        except OperationalError:
+            # Follows table not migrated yet; show empty following feed
+            posts = posts.none()
+    else:
+        posts = posts.none()
+    posts = posts[:10]
+    return render(request, 'home.html', { 'posts': posts })
 
 
 def detail(request: HttpRequest, slug: str) -> HttpResponse:
