@@ -4,11 +4,17 @@ from django.utils.text import slugify
 
 
 class Post(models.Model):
+    class PostType(models.TextChoices):
+        ARTICLE = 'article', 'Article'
+        POST = 'post', 'Post'
+        POLL = 'poll', 'Poll'
+
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
     title = models.CharField(max_length=255)
-    content = models.TextField()
+    content = models.TextField(blank=True)
     likes = models.ManyToManyField(User, related_name='liked_posts', blank=True)
     slug = models.SlugField(max_length=255, unique=True, null=True, blank=True)
+    type = models.CharField(max_length=20, choices=PostType.choices, default=PostType.ARTICLE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -21,6 +27,10 @@ class Post(models.Model):
     @property
     def likes_count(self) -> int:
         return self.likes.count()
+
+    @property
+    def is_poll(self) -> bool:
+        return self.type == Post.PostType.POLL
 
     def _generate_unique_slug(self) -> str:
         base_slug = slugify(self.title) or 'post'
@@ -35,6 +45,19 @@ class Post(models.Model):
         if not self.slug:
             self.slug = self._generate_unique_slug()
         super().save(*args, **kwargs)
+
+
+class PollOption(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='poll_options')
+    text = models.CharField(max_length=255)
+    voters = models.ManyToManyField(User, related_name='voted_poll_options', blank=True)
+
+    def __str__(self) -> str:
+        return f"Option({self.text}) for {self.post.title}"
+
+    @property
+    def votes_count(self) -> int:
+        return self.voters.count()
 
 
 class Comment(models.Model):

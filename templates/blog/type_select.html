@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Choose Post Type{% endblock %}
+{% block content %}
+  <h1 class="mb-4">Create new</h1>
+  <div class="row g-3">
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">Article</h5>
+          <p class="card-text">Long-form content with formatting.</p>
+          <a href="/blog/post/new/article/" class="btn btn-primary mt-auto">Choose</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">Post</h5>
+          <p class="card-text">Short update with plain text.</p>
+          <a href="/blog/post/new/status/" class="btn btn-primary mt-auto">Choose</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">Poll</h5>
+          <p class="card-text">Ask a question with multiple options.</p>
+          <a href="/blog/post/new/poll/" class="btn btn-primary mt-auto">Choose</a>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+

@@ -2,9 +2,15 @@ from django.http import HttpRequest, HttpResponse, HttpResponseForbidden, HttpRe
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Post, Comment
+from .models import Post, Comment, PollOption
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from .forms import PostForm, CommentForm
+from .forms import (
+    PostForm,
+    CommentForm,
+    ArticlePostForm,
+    StatusPostForm,
+    PollPostForm,
+)
 
 
 def index(request: HttpRequest) -> HttpResponse:
@@ -33,8 +39,28 @@ def detail(request: HttpRequest, slug: str) -> HttpResponse:
 
 @login_required
 def create(request: HttpRequest) -> HttpResponse:
+    return render(request, 'blog/type_select.html')
+
+
+@login_required
+def create_article(request: HttpRequest) -> HttpResponse:
     if request.method == 'POST':
-        form = PostForm(request.POST)
+        form = ArticlePostForm(request.POST)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.author = request.user
+            post.save()
+            messages.success(request, 'Article created!')
+            return redirect('blog:detail', slug=post.slug)
+    else:
+        form = ArticlePostForm()
+    return render(request, 'blog/form.html', { 'form': form, 'title': 'Create Article', 'show_poll_fields': False })
+
+
+@login_required
+def create_status(request: HttpRequest) -> HttpResponse:
+    if request.method == 'POST':
+        form = StatusPostForm(request.POST)
         if form.is_valid():
             post = form.save(commit=False)
             post.author = request.user
@@ -42,8 +68,32 @@ def create(request: HttpRequest) -> HttpResponse:
             messages.success(request, 'Post created!')
             return redirect('blog:detail', slug=post.slug)
     else:
-        form = PostForm()
-    return render(request, 'blog/form.html', { 'form': form, 'title': 'Create Post' })
+        form = StatusPostForm()
+    return render(request, 'blog/form.html', { 'form': form, 'title': 'Create Post', 'show_poll_fields': False })
+
+
+@login_required
+def create_poll(request: HttpRequest) -> HttpResponse:
+    if request.method == 'POST':
+        form = PollPostForm(request.POST)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.author = request.user
+            post.save()
+            option_texts = [
+                request.POST.get('option1', '').strip(),
+                request.POST.get('option2', '').strip(),
+                request.POST.get('option3', '').strip(),
+                request.POST.get('option4', '').strip(),
+            ]
+            for text in option_texts:
+                if text:
+                    PollOption.objects.create(post=post, text=text)
+            messages.success(request, 'Poll created!')
+            return redirect('blog:detail', slug=post.slug)
+    else:
+        form = PollPostForm()
+    return render(request, 'blog/form.html', { 'form': form, 'title': 'Create Poll', 'show_poll_fields': True })
 
 
 @login_required
@@ -55,6 +105,17 @@ def edit(request: HttpRequest, slug: str) -> HttpResponse:
         form = PostForm(request.POST, instance=post)
         if form.is_valid():
             form.save()
+            if getattr(post, 'is_poll', False):
+                post.poll_options.all().delete()
+                option_texts = [
+                    request.POST.get('option1', '').strip(),
+                    request.POST.get('option2', '').strip(),
+                    request.POST.get('option3', '').strip(),
+                    request.POST.get('option4', '').strip(),
+                ]
+                for text in option_texts:
+                    if text:
+                        PollOption.objects.create(post=post, text=text)
             messages.success(request, 'Post updated!')
             return redirect('blog:detail', slug=post.slug)
     else:
@@ -100,4 +161,20 @@ def add_comment(request: HttpRequest, slug: str) -> HttpResponse:
         comment.author = request.user
         comment.save()
         messages.success(request, 'Comment added!')
+    return redirect('blog:detail', slug=slug)
+
+
+@login_required
+def vote_poll(request: HttpRequest, slug: str, option_id: int) -> HttpResponse:
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+    post = get_object_or_404(Post, slug=slug)
+    if not getattr(post, 'is_poll', False):
+        return redirect('blog:detail', slug=slug)
+    option = get_object_or_404(PollOption, pk=option_id, post=post)
+    # Remove any previous votes by this user for this poll
+    for opt in post.poll_options.all():
+        opt.voters.remove(request.user)
+    option.voters.add(request.user)
+    messages.success(request, 'Vote recorded!')
     return redirect('blog:detail', slug=slug)

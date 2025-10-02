@@ -17,7 +17,20 @@
   </div>
 
   <div class="mb-4">
-    <div>{{ post.content|safe }}</div>
+    {% if post.is_poll %}
+      <div class="mb-3">
+        {% for opt in post.poll_options.all %}
+          <form method="post" action="/blog/post/{{ post.slug }}/vote/{{ opt.id }}/" class="d-inline">
+            {% csrf_token %}
+            <button class="btn btn-outline-primary btn-sm" type="submit">{{ opt.text }} ({{ opt.votes_count }})</button>
+          </form>
+        {% empty %}
+          <p class="text-secondary">No options added.</p>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="post-content">{{ post.content|safe }}</div>
+    {% endif %}
     {% if request.user == post.author %}
       <a class="btn btn-outline-primary btn-sm" href="/blog/post/{{ post.slug }}/edit/">Edit</a>
       <a class="btn btn-outline-danger btn-sm" href="/blog/post/{{ post.slug }}/delete/">Delete</a>
