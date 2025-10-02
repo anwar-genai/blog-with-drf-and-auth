@@ -24,6 +24,22 @@ python manage.py runserver
 python manage.py collectstatic --noinput
 ```
 
+### WebSockets (Channels) setup
+- Install packages with uv:
+```
+uv add channels daphne
+```
+- Verify installation:
+```
+uv pip show channels
+uv run python -c "import channels, importlib.metadata as m; print(m.version('channels'))"
+uv run daphne --version
+```
+- Run the ASGI server locally:
+```
+uv run daphne -b 127.0.0.1 -p 8000 config.asgi:application
+```
+
 ### Rich Text & Media
 - CKEditor enabled for articles. Uploads saved under `media/uploads/`.
 - Configure `MEDIA_URL` and `MEDIA_ROOT` (already set) for local dev.
@@ -33,6 +49,8 @@ python manage.py collectstatic --noinput
 - Votes update live; results bars show counts/percent.
 
 ### Changelog
+- [Notifications] Black bell icon with badge using Bootstrap translate-middle (perfect positioning); dropdown shows recent notifications with "username followed you"; unread items with subtle blue background; mark-all-read at bottom; full list at /notifications/; WebSocket toasts via Channels.
+- [Follows] Following/Explore feeds; People directory; follow/unfollow; follower/following counts on profile; realtime follow notifications.
 - [UI] Avatars in navbar/comments; sticky header; active nav for all links; Bootstrap toasts for messages; blog search with debounce and type filters; poll option preview in lists; card/badge polish.
 
 

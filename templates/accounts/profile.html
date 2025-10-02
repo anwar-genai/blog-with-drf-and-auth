@@ -14,6 +14,8 @@
       <p><strong>Username:</strong> {{ request.user.username }}</p>
       <p><strong>Email:</strong> {{ request.user.email }}</p>
       <p><strong>Bio:</strong> {{ request.user.profile.bio|default:'—' }}</p>
+      <p><strong>Followers:</strong> {{ request.user.followers.count }}</p>
+      <p><strong>Following:</strong> {{ request.user.following.count }}</p>
       <a class="btn btn-outline-primary" href="/accounts/profile/edit/">Edit profile</a>
     </div>
   </div>

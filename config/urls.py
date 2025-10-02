@@ -30,6 +30,7 @@ urlpatterns = [
     path('chat/', include('chat.urls', namespace='chat')),
     path('api/', include('api.urls', namespace='api')),
     path('ckeditor/', include('ckeditor_uploader.urls')),
+    path('notifications/', include('notifications.urls', namespace='notifications')),
 ]
 
 if settings.DEBUG:

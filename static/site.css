@@ -10,6 +10,23 @@
 
 /* Active nav state */
 .navbar .nav-link.active { font-weight: 600; border-bottom: 2px solid #0d6efd; }
+
+/* Notifications dropdown styling */
+.notification-dropdown {
+    min-width: 320px;
+}
+
+.notification-list-scroll {
+    max-height: 360px;
+    overflow-y: auto;
+}
+
+.unread-notification {
+    background: rgba(0, 123, 255, 0.08);
+    backdrop-filter: saturate(120%);
+}
+
+.dropdown-menu .dropdown-item .meta-time { color: #6c757d; font-size: .8rem; }
 /* Editor/content presentation tweaks */
 .ck-editor__editable_inline {
   border-top: 2px solid #000 !important; /* black top border */

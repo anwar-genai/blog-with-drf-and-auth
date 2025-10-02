@@ -4,6 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 from .models import Follow
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 
 
 def index(request: HttpRequest) -> HttpResponse:
@@ -34,4 +36,26 @@ def toggle_follow(request: HttpRequest, user_id: int) -> HttpResponse:
         messages.info(request, f'Unfollowed {target.username}.')
     else:
         messages.success(request, f'Now following {target.username}.')
+        # Send realtime notification to the followed user
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f"user_{target.id}",
+            {
+                'type': 'notify',
+                'data': {
+                    'type': 'follow',
+                    'message': f"{request.user.username} started following you",
+                    'follower': request.user.username,
+                }
+            }
+        )
+        # Persist notification for unread count
+        from notifications.models import Notification
+        Notification.objects.create(
+            user=target,
+            type='follow',
+            message=f"{request.user.username} started following you",
+            actor=request.user,
+            url=f"/follows/people/"
+        )
     return redirect('follows:people')
