@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.text import slugify
+from django.utils import timezone
 
 
 class Post(models.Model):
@@ -15,6 +16,10 @@ class Post(models.Model):
     likes = models.ManyToManyField(User, related_name='liked_posts', blank=True)
     slug = models.SlugField(max_length=255, unique=True, null=True, blank=True)
     type = models.CharField(max_length=20, choices=PostType.choices, default=PostType.ARTICLE)
+    # Poll controls
+    starts_at = models.DateTimeField(null=True, blank=True)
+    ends_at = models.DateTimeField(null=True, blank=True)
+    max_choices = models.PositiveSmallIntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -31,6 +36,17 @@ class Post(models.Model):
     @property
     def is_poll(self) -> bool:
         return self.type == Post.PostType.POLL
+
+    @property
+    def poll_is_open(self) -> bool:
+        if not self.is_poll:
+            return False
+        now = timezone.now()
+        if self.starts_at and now < self.starts_at:
+            return False
+        if self.ends_at and now > self.ends_at:
+            return False
+        return True
 
     def _generate_unique_slug(self) -> str:
         base_slug = slugify(self.title) or 'post'

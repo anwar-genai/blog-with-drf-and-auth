@@ -74,13 +74,15 @@ class StatusPostForm(forms.ModelForm):
 class PollPostForm(forms.ModelForm):
     class Meta:
         model = Post
-        fields = ['title']
+        fields = ['title', 'starts_at', 'ends_at', 'max_choices']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control post-title-input',
                 'placeholder': 'Poll question',
                 'autocomplete': 'off',
             }),
+            'starts_at': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
+            'ends_at': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
         }
 
     def save(self, commit=True):

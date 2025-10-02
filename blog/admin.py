@@ -4,7 +4,7 @@ from .models import Post, Comment, PollOption
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
-    list_display = ('title', 'author', 'type', 'created_at', 'updated_at', 'likes_count')
+    list_display = ('title', 'author', 'type', 'max_choices', 'starts_at', 'ends_at', 'created_at', 'updated_at', 'likes_count')
     search_fields = ('title', 'content', 'author__username')
     list_filter = ('created_at', 'type')
 

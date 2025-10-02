@@ -18,16 +18,64 @@
 
   <div class="mb-4">
     {% if post.is_poll %}
-      <div class="mb-3">
-        {% for opt in post.poll_options.all %}
-          <form method="post" action="/blog/post/{{ post.slug }}/vote/{{ opt.id }}/" class="d-inline">
-            {% csrf_token %}
-            <button class="btn btn-outline-primary btn-sm" type="submit">{{ opt.text }} ({{ opt.votes_count }})</button>
-          </form>
+      <div class="mb-3" id="poll-container" data-slug="{{ post.slug }}">
+        {% for opt in poll_options %}
+          <div class="mb-2">
+            <div class="d-flex justify-content-between"><span>{{ opt.text }}</span><span class="text-secondary small"><span class="votes" data-id="{{ opt.id }}">{{ opt.votes }}</span> votes</span></div>
+            <div class="progress" role="progressbar">
+              <div class="progress-bar" data-id="{{ opt.id }}" style="width: {{ opt.percent }}%"></div>
+            </div>
+            <button class="btn btn-outline-primary btn-sm mt-1 vote-btn" data-option-id="{{ opt.id }}" {% if not post.poll_is_open %}disabled{% endif %}>
+              {% if opt.selected %}Unselect{% else %}Vote{% endif %}
+            </button>
+          </div>
         {% empty %}
           <p class="text-secondary">No options added.</p>
         {% endfor %}
+        {% if not post.poll_is_open %}
+          <div class="text-danger small">Poll is closed.</div>
+        {% elif post.max_choices > 1 %}
+          <div class="text-secondary small">Select up to {{ post.max_choices }} options.</div>
+        {% endif %}
       </div>
+      <script>
+        (function(){
+          const container = document.getElementById('poll-container');
+          if(!container) return;
+          const slug = container.getAttribute('data-slug');
+          const buttons = container.querySelectorAll('.vote-btn');
+          buttons.forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+              e.preventDefault();
+              const optionId = btn.getAttribute('data-option-id');
+              const res = await fetch(`/blog/post/${slug}/vote/${optionId}/`, {method:'POST', headers:{'X-Requested-With':'XMLHttpRequest','X-CSRFToken': getCookie('csrftoken')}});
+              if(!res.ok){ return; }
+              const data = await res.json();
+              if(!data.ok){ return; }
+              data.options.forEach(o => {
+                const bar = container.querySelector(`.progress-bar[data-id="${o.id}"]`);
+                if(bar){ bar.style.width = `${o.percent}%`; }
+                const votes = container.querySelector(`.votes[data-id="${o.id}"]`);
+                if(votes){ votes.innerText = o.votes; }
+              });
+            });
+          });
+          function getCookie(name){
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+              const cookies = document.cookie.split(';');
+              for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                  cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                  break;
+                }
+              }
+            }
+            return cookieValue;
+          }
+        })();
+      </script>
     {% else %}
       <div class="post-content">{{ post.content|safe }}</div>
     {% endif %}
