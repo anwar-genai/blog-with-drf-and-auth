@@ -20,14 +20,17 @@
     {% if post.is_poll %}
       <div class="mb-3" id="poll-container" data-slug="{{ post.slug }}">
         {% for opt in poll_options %}
-          <div class="mb-2">
-            <div class="d-flex justify-content-between"><span>{{ opt.text }}</span><span class="text-secondary small"><span class="votes" data-id="{{ opt.id }}">{{ opt.votes }}</span> votes</span></div>
-            <div class="progress" role="progressbar">
+          <div class="mb-3 poll-option">
+            <div class="d-flex justify-content-between mb-1 align-items-center">
+              <div class="form-check">
+                <input class="form-check-input poll-choice" type="{% if post.max_choices > 1 %}checkbox{% else %}radio{% endif %}" name="poll_choice" id="opt-{{ opt.id }}" data-option-id="{{ opt.id }}" {% if opt.selected %}checked{% endif %} {% if not post.poll_is_open %}disabled{% endif %}>
+                <label class="form-check-label" for="opt-{{ opt.id }}"><strong>{{ opt.text }}</strong></label>
+              </div>
+              <span class="text-secondary small"><span class="votes" data-id="{{ opt.id }}">{{ opt.votes }}</span> votes • {{ opt.percent }}%</span>
+            </div>
+            <div class="progress" role="progressbar" aria-label="{{ opt.text }}">
               <div class="progress-bar" data-id="{{ opt.id }}" style="width: {{ opt.percent }}%"></div>
             </div>
-            <button class="btn btn-outline-primary btn-sm mt-1 vote-btn" data-option-id="{{ opt.id }}" {% if not post.poll_is_open %}disabled{% endif %}>
-              {% if opt.selected %}Unselect{% else %}Vote{% endif %}
-            </button>
           </div>
         {% empty %}
           <p class="text-secondary">No options added.</p>
@@ -43,11 +46,10 @@
           const container = document.getElementById('poll-container');
           if(!container) return;
           const slug = container.getAttribute('data-slug');
-          const buttons = container.querySelectorAll('.vote-btn');
-          buttons.forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-              e.preventDefault();
-              const optionId = btn.getAttribute('data-option-id');
+          const inputs = container.querySelectorAll('.poll-choice');
+          inputs.forEach(input => {
+            input.addEventListener('change', async (e) => {
+              const optionId = input.getAttribute('data-option-id');
               const res = await fetch(`/blog/post/${slug}/vote/${optionId}/`, {method:'POST', headers:{'X-Requested-With':'XMLHttpRequest','X-CSRFToken': getCookie('csrftoken')}});
               if(!res.ok){ return; }
               const data = await res.json();
@@ -57,6 +59,8 @@
                 if(bar){ bar.style.width = `${o.percent}%`; }
                 const votes = container.querySelector(`.votes[data-id="${o.id}"]`);
                 if(votes){ votes.innerText = o.votes; }
+                const optInput = container.querySelector(`.poll-choice[data-option-id="${o.id}"]`);
+                if(optInput){ optInput.checked = !!o.selected; }
               });
             });
           });
@@ -88,8 +92,8 @@
   <h4 class="mb-3">Comments</h4>
   <div class="mb-3">
     {% for comment in post.comments.all %}
-      <div class="border rounded p-2 mb-2">
-        <div class="small text-secondary mb-1">{{ comment.author.username }} • {{ comment.created_at|date:"M d, Y H:i" }}</div>
+      <div class="comment-card p-3 mb-2">
+        <div class="meta mb-1">{{ comment.author.username }} • {{ comment.created_at|date:"M d, Y H:i" }}</div>
         <div>{{ comment.content|linebreaks }}</div>
       </div>
     {% empty %}
@@ -98,9 +102,12 @@
   </div>
 
   {% if request.user.is_authenticated %}
-    <form method="post" action="/blog/post/{{ post.slug }}/comment/">
+    <form method="post" action="/blog/post/{{ post.slug }}/comment/" class="comment-form">
       {% csrf_token %}
-      {{ comment_form.as_p }}
+      <div class="mb-2">
+        {{ comment_form.content.errors }}
+        <textarea name="content" class="form-control" rows="3" placeholder="Add a comment..."></textarea>
+      </div>
       <button class="btn btn-primary" type="submit">Add Comment</button>
     </form>
   {% else %}

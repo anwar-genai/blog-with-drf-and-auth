@@ -1,73 +1,43 @@
 {% extends 'base.html' %}
-{% block title %}Home{% endblock %}
+{% block title %}Latest{% endblock %}
 {% block content %}
-  <div class="p-5 mb-4 bg-light rounded-3">
-    <div class="container-fluid py-5">
-      {% if request.user.is_authenticated %}
-        <h1 class="display-5 fw-bold">Welcome back, {{ request.user.username }}</h1>
-        <p class="col-md-8 fs-5">Create posts and catch up on the latest from the community.</p>
-        <a class="btn btn-primary btn-lg me-2" href="/blog/post/new/">New Post</a>
-        <a class="btn btn-outline-secondary btn-lg" href="/blog/">Browse Blog</a>
-      {% else %}
-        <h1 class="display-5 fw-bold">Welcome to the Blog Project</h1>
-        <p class="col-md-8 fs-5">A clean Django starter with accounts, follows, chat, and API.
-        Explore the latest posts or create an account to join the conversation.</p>
-        <a class="btn btn-primary btn-lg me-2" href="/blog/">Browse Blog</a>
-        <a class="btn btn-outline-secondary btn-lg me-2" href="/accounts/signup/">Sign up</a>
-        <a class="btn btn-outline-secondary btn-lg" href="/accounts/login/">Login</a>
-      {% endif %}
-    </div>
-  </div>
-  <div class="row g-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Latest</h1>
     {% if request.user.is_authenticated %}
-      <div class="col-md-6">
-        <div class="card h-100">
-          <div class="card-body">
-            <h5 class="card-title">Follows</h5>
-            <p class="card-text">Follow users and see their posts in your feed.</p>
-            <a href="/follows/" class="card-link">Open</a>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-6">
-        <div class="card h-100">
-          <div class="card-body">
-            <h5 class="card-title">Chat</h5>
-            <p class="card-text">Start direct messages with other users.</p>
-            <a href="/chat/" class="card-link">Open</a>
-          </div>
-        </div>
-      </div>
-    {% else %}
-      <div class="col-md-6">
-        <div class="card h-100">
-          <div class="card-body">
-            <h5 class="card-title">Accounts</h5>
-            <p class="card-text">Sign up or log in to post and interact.</p>
-            <a href="/accounts/" class="card-link">Open</a>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-6">
-        <div class="card h-100">
-          <div class="card-body">
-            <h5 class="card-title">Chat</h5>
-            <p class="card-text">See how messaging works.</p>
-            <a href="/chat/" class="card-link">Open</a>
-          </div>
-        </div>
+      <div class="btn-group">
+        <a class="btn btn-outline-primary" href="/blog/post/new/article/">New Article</a>
+        <a class="btn btn-outline-success" href="/blog/post/new/status/">New Post</a>
+        <a class="btn btn-outline-warning" href="/blog/post/new/poll/">New Poll</a>
       </div>
     {% endif %}
   </div>
-  <hr class="my-5"/>
-  <h2 class="mb-3">Latest Posts</h2>
   {% with posts=posts %}
     {% if posts %}
       {% for post in posts %}
-        <div class="border-bottom pb-3 mb-3">
-          <h5 class="mb-1"><a href="/blog/post/{{ post.slug }}/">{{ post.title }}</a></h5>
-          <div class="text-secondary small mb-1">by {{ post.author.username }} • {{ post.created_at|date:"M d, Y H:i" }} • ❤️ {{ post.likes_count }}</div>
-          <p class="mb-0">{{ post.content|striptags|truncatewords:30 }}</p>
+        <div class="card mb-3 shadow-sm">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <h5 class="card-title mb-1"><a href="/blog/post/{{ post.slug }}/">{{ post.title|default_if_none:"(No title)" }}</a></h5>
+                <div class="text-secondary small mb-2">by {{ post.author.username }} • {{ post.created_at|date:"M d, Y H:i" }} • ❤️ {{ post.likes_count }}</div>
+              </div>
+              {% if post.type == 'article' %}
+                <span class="badge text-bg-primary">📝 Article</span>
+              {% elif post.type == 'post' %}
+                <span class="badge text-bg-success">💬 Post</span>
+              {% elif post.type == 'poll' %}
+                <span class="badge text-bg-warning">📊 Poll</span>
+              {% else %}
+                <span class="badge text-bg-secondary">{{ post.type|title }}</span>
+              {% endif %}
+            </div>
+            {% if post.type == 'poll' %}
+              <div class="small text-secondary">Poll • {{ post.poll_options.count }} options</div>
+            {% else %}
+              <p class="card-text">{{ post.content|striptags|truncatewords:30 }}</p>
+            {% endif %}
+            <a class="card-link" href="/blog/post/{{ post.slug }}/">Read more</a>
+          </div>
         </div>
       {% endfor %}
     {% else %}

@@ -1,3 +1,9 @@
+.poll-option .progress { height: 10px; background: #e9ecef; }
+.poll-option .progress-bar { background: linear-gradient(90deg, #0d6efd, #6610f2); }
+.poll-option .vote-btn { border-radius: 999px; padding: 0.25rem 0.75rem; }
+.comment-card { background: #fff; border: 1px solid #e5e7eb; border-radius: .5rem; }
+.comment-card .meta { color: #6c757d; font-size: .85rem; }
+.comment-form textarea { border-radius: .5rem; }
 /* Editor/content presentation tweaks */
 .ck-editor__editable_inline {
   border-top: 2px solid #000 !important; /* black top border */
