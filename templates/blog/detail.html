@@ -1,25 +1,76 @@
 {% extends 'base.html' %}
 {% block title %}{{ post.title }}{% endblock %}
 {% block content %}
-  <div class="d-flex justify-content-between align-items-start mb-3">
-    <div>
-      <h1 class="mb-1">{{ post.title }}</h1>
-      <div class="text-secondary small d-flex align-items-center gap-2">
+  <div class="border-bottom p-3 d-flex align-items-center justify-content-between" style="background:#ffffff; position: sticky; top: 0; z-index: 1;">
+    <div class="fw-bold">Post</div>
+    <div class="text-secondary small">Details</div>
+  </div>
+
+  <article class="tweet-card p-3">
+    <div class="d-flex gap-3">
+      <div>
         {% if post.author.profile and post.author.profile.avatar %}
-          <img src="{{ post.author.profile.avatar.url }}" alt="avatar" class="rounded-circle" width="24" height="24">
+          <img class="avatar" src="{{ post.author.profile.avatar.url }}" alt="avatar">
+        {% else %}
+          <div class="avatar bg-secondary-subtle"></div>
         {% endif %}
-        <span>by {{ post.author.username }} • {{ post.created_at|date:"M d, Y H:i" }}</span>
+      </div>
+      <div class="flex-grow-1">
+        <div class="d-flex align-items-center flex-wrap">
+          <span class="display-name me-1">{{ post.author.username }}</span>
+          <span class="handle">@{{ post.author.username|lower }}</span>
+          <span class="dot"></span>
+          <span class="handle">{{ post.created_at|timesince }} ago</span>
+        </div>
+        {% if post.title %}
+          <div class="fw-bold mt-1">{{ post.title }}</div>
+        {% endif %}
+        <div class="tweet-content mt-2 post-content">
+          {% if post.is_poll %}
+            <div class="mb-3" id="poll-container" data-slug="{{ post.slug }}">
+              {% for opt in poll_options %}
+                <div class="mb-3 poll-option">
+                  <div class="d-flex justify-content-between mb-1 align-items-center">
+                    <div class="form-check">
+                      <input class="form-check-input poll-choice" type="{% if post.max_choices > 1 %}checkbox{% else %}radio{% endif %}" name="poll_choice" id="opt-{{ opt.id }}" data-option-id="{{ opt.id }}" {% if opt.selected %}checked{% endif %} {% if not post.poll_is_open %}disabled{% endif %}>
+                      <label class="form-check-label" for="opt-{{ opt.id }}"><strong>{{ opt.text }}</strong></label>
+                    </div>
+                    <span class="text-secondary small"><span class="votes" data-id="{{ opt.id }}">{{ opt.votes }}</span> votes • {{ opt.percent }}%</span>
+                  </div>
+                  <div class="progress" role="progressbar" aria-label="{{ opt.text }}">
+                    <div class="progress-bar" data-id="{{ opt.id }}" style="width: {{ opt.percent }}%"></div>
+                  </div>
+                </div>
+              {% empty %}
+                <p class="text-secondary">No options added.</p>
+              {% endfor %}
+              {% if not post.poll_is_open %}
+                <div class="text-danger small">Poll is closed.</div>
+              {% elif post.max_choices > 1 %}
+                <div class="text-secondary small">Select up to {{ post.max_choices }} options.</div>
+              {% endif %}
+            </div>
+          {% else %}
+            {{ post.content|safe }}
+          {% endif %}
+        </div>
+
+        <div class="d-flex align-items-center gap-3 tweet-stats border-top pt-2 mt-3">
+          <form method="post" action="/blog/post/{{ post.slug }}/like-toggle/" class="m-0">
+            {% csrf_token %}
+            <button class="btn tweet-action-btn" type="submit" title="Like">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              <span class="ms-1">{{ post.likes_count }}</span>
+            </button>
+          </form>
+          {% if request.user == post.author %}
+            <a class="btn btn-soft btn-sm rounded-pill" href="/blog/post/{{ post.slug }}/edit/">Edit</a>
+            <a class="btn btn-soft btn-sm rounded-pill" href="/blog/post/{{ post.slug }}/delete/">Delete</a>
+          {% endif %}
+        </div>
       </div>
     </div>
-    <div>
-      {% if request.user.is_authenticated %}
-        <form method="post" action="/blog/post/{{ post.slug }}/like-toggle/">
-          {% csrf_token %}
-          <button class="btn btn-outline-danger" type="submit">{% if request.user in post.likes.all %}Unlike{% else %}Like{% endif %} ({{ post.likes_count }})</button>
-        </form>
-      {% endif %}
-    </div>
-  </div>
+  </article>
 
   <div class="mb-4">
     {% if post.is_poll %}
@@ -94,38 +145,43 @@
     {% endif %}
   </div>
 
-  <h4 class="mb-3">Comments</h4>
+  <div class="border-top"></div>
   <div class="mb-3">
     {% for comment in post.comments.all %}
-      <div class="comment-card p-3 mb-2 d-flex gap-2">
+      <div class="tweet-card p-3 d-flex gap-2">
         <div>
           {% if comment.author.profile and comment.author.profile.avatar %}
-            <img src="{{ comment.author.profile.avatar.url }}" alt="avatar" class="rounded-circle" width="36" height="36">
+            <img src="{{ comment.author.profile.avatar.url }}" alt="avatar" class="avatar-sm">
           {% else %}
-            <div class="rounded-circle bg-secondary-subtle" style="width:36px;height:36px;"></div>
+            <div class="avatar-sm bg-secondary-subtle"></div>
           {% endif %}
         </div>
         <div class="flex-grow-1">
-          <div class="meta mb-1">{{ comment.author.username }} • {{ comment.created_at|date:"M d, Y H:i" }}</div>
-          <div>{{ comment.content|linebreaks }}</div>
+          <div class="d-flex align-items-center gap-2">
+            <span class="display-name">{{ comment.author.username }}</span>
+            <span class="handle">@{{ comment.author.username|lower }}</span>
+            <span class="dot"></span>
+            <span class="handle">{{ comment.created_at|timesince }} ago</span>
+          </div>
+          <div class="mt-1">{{ comment.content|linebreaks }}</div>
         </div>
       </div>
     {% empty %}
-      <p class="text-secondary">No comments yet.</p>
+      <p class="text-secondary p-3">No comments yet.</p>
     {% endfor %}
   </div>
 
   {% if request.user.is_authenticated %}
-    <form method="post" action="/blog/post/{{ post.slug }}/comment/" class="comment-form">
+    <form method="post" action="/blog/post/{{ post.slug }}/comment/" class="comment-form p-3 bg-white border-top">
       {% csrf_token %}
       <div class="mb-2">
         {{ comment_form.content.errors }}
-        <textarea name="content" class="form-control" rows="3" placeholder="Add a comment..."></textarea>
+        <textarea name="content" class="form-control" rows="3" placeholder="Post your reply"></textarea>
       </div>
-      <button class="btn btn-primary" type="submit">Add Comment</button>
+      <button class="btn btn-brand rounded-pill" type="submit">Reply</button>
     </form>
   {% else %}
-    <p><a href="/accounts/login/">Login</a> to comment.</p>
+    <p class="p-3"><a href="/accounts/login/">Login</a> to comment.</p>
   {% endif %}
 {% endblock %}
 

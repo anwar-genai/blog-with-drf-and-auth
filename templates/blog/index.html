@@ -1,66 +1,99 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Blog{% endblock %}
 {% block content %}
-  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-    <h1 class="mb-0">Latest</h1>
-    <form method="get" class="d-flex gap-2" role="search" id="search-form">
-      <input type="search" class="form-control" name="q" id="search-input" placeholder="Search..." value="{{ request.GET.q }}">
-      <select class="form-select" name="type">
-        <option value="">All</option>
-        <option value="article" {% if request.GET.type == 'article' %}selected{% endif %}>Articles</option>
-        <option value="post" {% if request.GET.type == 'post' %}selected{% endif %}>Posts</option>
-        <option value="poll" {% if request.GET.type == 'poll' %}selected{% endif %}>Polls</option>
-      </select>
-      <button class="btn btn-outline-secondary" type="submit">Filter</button>
-    </form>
-    {% if request.user.is_authenticated %}
-      <div class="btn-group">
-        <a class="btn btn-outline-primary" href="/blog/post/new/article/">New Article</a>
-        <a class="btn btn-outline-success" href="/blog/post/new/status/">New Post</a>
-        <a class="btn btn-outline-warning" href="/blog/post/new/poll/">New Poll</a>
+  <div class="border-bottom p-3 d-flex align-items-center justify-content-between" style="background:#ffffff; position: sticky; top: 0; z-index: 1;">
+    <div class="fw-bold">Home</div>
+    <div class="text-secondary small">Latest</div>
+  </div>
+
+  <div class="p-3" style="background:#ffffff;">
+    <form method="get" class="position-relative mb-2" role="search" id="search-form">
+      <span class="search-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      </span>
+      <div class="d-flex gap-2">
+        <input type="search" class="form-control search-input" name="q" id="search-input" placeholder="Search" value="{{ request.GET.q }}">
+        <select class="form-select" name="type" style="max-width: 160px;">
+          <option value="">All</option>
+          <option value="article" {% if request.GET.type == 'article' %}selected{% endif %}>Articles</option>
+          <option value="post" {% if request.GET.type == 'post' %}selected{% endif %}>Posts</option>
+          <option value="poll" {% if request.GET.type == 'poll' %}selected{% endif %}>Polls</option>
+        </select>
+        <button class="btn btn-soft" type="submit">Filter</button>
       </div>
-    {% endif %}
+    </form>
   </div>
   {% for post in posts %}
-    <div class="card mb-3 shadow-sm">
-      <div class="card-body">
-        <div class="d-flex justify-content-between align-items-start">
-          <div>
-            <h5 class="card-title mb-1"><a href="/blog/post/{{ post.slug }}/">{{ post.title|default_if_none:"(No title)" }}</a></h5>
-            <div class="text-secondary small mb-2">by {{ post.author.username }} • {{ post.created_at|date:"M d, Y H:i" }} • ❤️ {{ post.likes_count }}</div>
-          </div>
-          {% if post.type == 'article' %}
-            <span class="badge text-bg-primary">📝 Article</span>
-          {% elif post.type == 'post' %}
-            <span class="badge text-bg-success">💬 Post</span>
-          {% elif post.type == 'poll' %}
-            <span class="badge text-bg-warning">📊 Poll</span>
+    <article class="tweet-card p-3">
+      <div class="d-flex gap-3">
+        <a href="/accounts/profile/">
+          {% if post.author.profile and post.author.profile.avatar %}
+            <img class="avatar" src="{{ post.author.profile.avatar.url }}" alt="avatar">
           {% else %}
-            <span class="badge text-bg-secondary">{{ post.type|title }}</span>
+            <img class="avatar" src="{% static 'file-icons/file.png' %}" alt="avatar">
           {% endif %}
-        </div>
-        {% if post.type == 'poll' %}
-          <div class="small text-secondary">Poll • {{ post.poll_options.count }} options</div>
-          <ul class="small text-secondary mb-2">
-            {% for opt in post.poll_options.all|slice:':3' %}
-              <li>{{ opt.text }}</li>
-            {% endfor %}
-            {% if post.poll_options.count > 3 %}
-              <li>+{{ post.poll_options.count|add:'-3' }} more…</li>
+        </a>
+        <div class="flex-grow-1">
+          <div class="d-flex align-items-center flex-wrap">
+            <a href="/blog/post/{{ post.slug }}/" class="text-decoration-none text-dark display-name me-1">{{ post.author.username }}</a>
+            <span class="handle">@{{ post.author.username|lower }}</span>
+            <span class="dot"></span>
+            <span class="handle">{{ post.created_at|timesince }} ago</span>
+          </div>
+          {% if post.title %}
+            <div class="fw-bold mt-1">{{ post.title }}</div>
+          {% endif %}
+          <div class="tweet-content mt-1">
+            {% if post.type == 'poll' %}
+              <div class="small text-secondary">Poll • {{ post.poll_options.count }} options</div>
+              <ul class="small text-secondary mb-2 ps-3">
+                {% for opt in post.poll_options.all|slice:':3' %}
+                  <li>{{ opt.text }}</li>
+                {% endfor %}
+                {% if post.poll_options.count > 3 %}
+                  <li>+{{ post.poll_options.count|add:'-3' }} more…</li>
+                {% endif %}
+              </ul>
+            {% else %}
+              {{ post.content|striptags|truncatewords:40 }}
             {% endif %}
-          </ul>
-        {% else %}
-          <p class="card-text">{{ post.content|striptags|truncatewords:40 }}</p>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center tweet-actions mt-2 me-5">
+            <a href="/blog/post/{{ post.slug }}/" class="btn tweet-action-btn" title="Open">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/><path d="M3 12h12"/></svg>
+            </a>
+            <button class="btn tweet-action-btn" title="Like">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              <span class="ms-1">{{ post.likes_count }}</span>
+            </button>
+            <a href="/blog/post/{{ post.slug }}/#comments" class="btn tweet-action-btn" title="Comments">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </a>
+          </div>
+        </div>
+        {% if post.type %}
+          <div class="text-end">
+            {% if post.type == 'article' %}
+              <span class="badge text-bg-primary">Article</span>
+            {% elif post.type == 'post' %}
+              <span class="badge text-bg-success">Post</span>
+            {% elif post.type == 'poll' %}
+              <span class="badge text-bg-warning">Poll</span>
+            {% else %}
+              <span class="badge text-bg-secondary">{{ post.type|title }}</span>
+            {% endif %}
+          </div>
         {% endif %}
-        <a class="card-link" href="/blog/post/{{ post.slug }}/">Read more</a>
       </div>
-    </div>
+    </article>
   {% empty %}
-    <p>No posts yet.</p>
+    <p class="p-3">No posts yet.</p>
   {% endfor %}
   {% if posts.paginator.num_pages > 1 %}
-    <nav aria-label="Page navigation">
-      <ul class="pagination justify-content-center mt-4">
+    <nav aria-label="Page navigation" class="bg-white border-top p-3">
+      <ul class="pagination justify-content-center mt-2 mb-0">
         {% if posts.has_previous %}
           <li class="page-item"><a class="page-link" href="?page={{ posts.previous_page_number }}">Previous</a></li>
         {% else %}

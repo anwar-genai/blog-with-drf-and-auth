@@ -1,27 +1,26 @@
 {% extends 'base.html' %}
 {% block title %}Notifications{% endblock %}
 {% block content %}
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="mb-0">Notifications</h1>
-    <form method="post" action="/notifications/read-all/">
+  <div class="border-bottom p-3 d-flex align-items-center justify-content-between" style="background:#ffffff; position: sticky; top: 0; z-index: 1;">
+    <div class="fw-bold">Notifications</div>
+    <form method="post" action="/notifications/read-all/" class="m-0">
       {% csrf_token %}
-      <button class="btn btn-outline-secondary btn-sm" type="submit">Mark all read</button>
+      <button class="btn btn-soft btn-sm rounded-pill" type="submit">Mark all read</button>
     </form>
   </div>
+
   {% for n in items %}
-    <div class="card mb-2">
-      <div class="card-body d-flex justify-content-between align-items-center">
-        <div>
-          <div>{{ n.message }}</div>
-          <div class="text-secondary small">{{ n.created_at|date:"M d, Y H:i" }}</div>
-        </div>
-        {% if n.url %}
-          <a class="btn btn-sm btn-primary" href="{{ n.url }}">Open</a>
-        {% endif %}
+    <div class="tweet-card p-3 d-flex justify-content-between align-items-center {% if not n.read %}unread-notification{% endif %}">
+      <div>
+        <div>{{ n.message }}</div>
+        <div class="text-secondary small">{{ n.created_at|timesince }} ago</div>
       </div>
+      {% if n.url %}
+        <a class="btn btn-soft btn-sm rounded-pill" href="{{ n.url }}">Open</a>
+      {% endif %}
     </div>
   {% empty %}
-    <p class="text-secondary">No notifications yet.</p>
+    <p class="text-secondary p-3">No notifications yet.</p>
   {% endfor %}
 {% endblock %}
 
