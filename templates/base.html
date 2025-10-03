@@ -161,7 +161,7 @@
             </nav>
             {% if user.is_authenticated %}
               <div class="mt-3">
-                <a href="/blog/compose/" class="btn btn-brand w-100 tweet-btn" id="open-compose">Post</a>
+                <a href="/blog/compose/" class="btn btn-brand w-100 tweet-btn" id="open-compose" hx-get="/blog/compose/" hx-target="#composeModalBody" hx-swap="innerHTML" hx-push-url="false">Post</a>
               </div>
             {% endif %}
           </div>
@@ -220,6 +220,7 @@
       </div>
     </main>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
     <script>
       (function(){
         const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
@@ -258,52 +259,30 @@
     </div>
     <script>
       (function(){
-        const link = document.getElementById('open-compose');
         const modalEl = document.getElementById('composeModal');
         const bodyEl = document.getElementById('composeModalBody');
-        if(!link || !modalEl || !bodyEl) return;
+        if(!modalEl || !bodyEl) return;
         const modal = new bootstrap.Modal(modalEl);
-        function get(url){ return fetch(url, { headers: { 'X-Requested-With':'XMLHttpRequest' } }); }
-        function openModal(url){
-          get(url).then(r=>r.json()).then(data=>{
-            if(!data.ok) return;
-            bodyEl.innerHTML = data.html;
-            modal.show();
-          });
-        }
-        function handleRoute(){
-          if(location.pathname.endsWith('/blog/compose/')){
-            openModal('/blog/compose/');
-          } else if(location.pathname.includes('/blog/post/') && location.pathname.endsWith('/reply/')){
-            openModal(location.pathname);
-          }
-        }
-        window.addEventListener('popstate', function(e){
-          handleRoute();
-          const instance = bootstrap.Modal.getInstance(modalEl);
-          if(instance && !(location.pathname.endsWith('/blog/compose/') || location.pathname.endsWith('/reply/'))){ instance.hide(); }
+        // Show the modal whenever HTMX swaps content into the modal body
+        document.body.addEventListener('htmx:afterSwap', function(ev){
+          if(ev.target === bodyEl){ modal.show(); }
         });
-        link.addEventListener('click', function(ev){
-          ev.preventDefault();
-          const url = this.getAttribute('href');
-          history.pushState({modal:true}, '', url);
-          openModal(url);
-        });
-        // Delegate opening reply modal from feed/comment buttons
-        document.addEventListener('click', function(e){
-          const link = e.target.closest('a[data-reply-url]');
-          if(!link) return;
-          e.preventDefault();
-          const url = link.getAttribute('data-reply-url');
-          history.pushState({modal:true}, '', url);
-          openModal(url);
-        });
-        // Open modal if user lands directly on a modal route
-        handleRoute();
-        modalEl.addEventListener('hidden.bs.modal', function(){
-          if(location.pathname.endsWith('/blog/compose/')){
-            history.back();
-          }
+        // Close modal and update comment count on HTMX HX-Trigger
+        document.body.addEventListener('htmx:afterOnLoad', function(ev){
+          const trig = ev.detail.xhr.getResponseHeader('HX-Trigger');
+          if(!trig) return;
+          try{
+            const obj = JSON.parse(trig);
+            if(obj['reply:success']){
+              const data = obj['reply:success'];
+              const card = document.querySelector(`[data-post-slug='${data.slug}']`);
+              if(card){
+                const countEl = card.querySelector('.comment-count');
+                if(countEl){ countEl.textContent = String(parseInt(countEl.textContent||'0',10) + 1); }
+              }
+              const instance = bootstrap.Modal.getInstance(modalEl); if(instance){ instance.hide(); }
+            }
+          }catch(err){}
         });
       })();
     </script>

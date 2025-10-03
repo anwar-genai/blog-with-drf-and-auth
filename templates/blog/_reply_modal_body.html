@@ -1,8 +1,9 @@
 <div class="mb-3">
   {% include 'blog/_post_card.html' with post=post %}
 </div>
-<form id="reply-modal-form" method="post" action="/blog/post/{{ post.slug }}/comment/">
+<form id="reply-modal-form" method="post" action="/blog/post/{{ post.slug }}/comment/" hx-post="/blog/post/{{ post.slug }}/comment/" hx-swap="none" hx-push-url="false">
   {% csrf_token %}
+  <input type="hidden" name="next" value="/blog/#post-{{ post.slug }}">
   <div class="d-flex gap-3">
     <div>
       {% if request.user.profile and request.user.profile.avatar %}
@@ -12,7 +13,7 @@
       {% endif %}
     </div>
     <div class="flex-grow-1">
-      <textarea name="content" class="form-control border-0" rows="4" placeholder="Post your reply"></textarea>
+      <textarea name="content" class="form-control border-0 autosize" rows="1" placeholder="Post your reply"></textarea>
       <div class="d-flex justify-content-end mt-3">
         <button type="submit" class="btn btn-brand rounded-pill px-3">Reply</button>
       </div>
@@ -23,44 +24,27 @@
 (function(){
   const form = document.getElementById('reply-modal-form');
   if(!form) return;
-  function getCookie(name){
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-      const cookies = document.cookie.split(';');
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
-        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-          break;
-        }
-      }
-    }
-    return cookieValue;
+  // Autosize textarea
+  const ta = form.querySelector('textarea.autosize');
+  if(ta){
+    function resize(){ ta.style.height = 'auto'; ta.style.height = Math.min(220, ta.scrollHeight) + 'px'; }
+    ta.addEventListener('input', resize); resize();
   }
-  form.addEventListener('submit', async function(e){
-    e.preventDefault();
-    const textarea = form.querySelector('textarea[name="content"]');
-    const content = textarea.value.trim();
-    if(!content) return;
-    try{
-      const res = await fetch(form.action, { method:'POST', headers:{ 'X-Requested-With':'XMLHttpRequest', 'X-CSRFToken': getCookie('csrftoken'), 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' }, body: new URLSearchParams({ content }) });
-      if(res.ok){
-        const data = await res.json();
-        if(data.ok){
-          // Update comment count in the feed card if present
+  document.body.addEventListener('htmx:afterRequest', function(ev){
+    if(ev.target === form){
+      try {
+        const resp = ev.detail.xhr.responseText;
+        let data; try { data = JSON.parse(resp); } catch(_){ data = null; }
+        if(data && data.ok){
           const card = document.querySelector(`[data-post-slug='{{ post.slug }}']`);
           if(card){
             const countEl = card.querySelector('.comment-count');
             if(countEl){ countEl.textContent = String(parseInt(countEl.textContent||'0',10) + 1); }
-            // Smooth scroll the feed to the post
-            card.scrollIntoView({ behavior:'smooth', block:'center' });
           }
-          const modalEl = document.getElementById('composeModal');
-          const instance = bootstrap.Modal.getInstance(modalEl);
-          if(instance){ instance.hide(); }
+          const evt = new Event('reply:success'); document.body.dispatchEvent(evt);
         }
-      }
-    }catch(err){}
+      } catch(err){}
+    }
   });
 })();
 </script>

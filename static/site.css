@@ -168,6 +168,15 @@ body { background: var(--bg-app); color: var(--text-main); }
 .tweet-card .handle { color: var(--text-secondary); }
 .tweet-card .dot { width: 4px; height: 4px; background: var(--text-secondary); border-radius: 50%; display: inline-block; margin: 0 .5rem; transform: translateY(-2px); }
 .tweet-content { white-space: pre-wrap; }
+.tweet-card .tweet-content { line-height: 1.5; }
+.tweet-card .tweet-content p { margin-bottom: .5rem; }
+.tweet-card .tweet-content img, .tweet-card .tweet-content .card, .tweet-card .tweet-content figure { margin-top: .5rem; margin-bottom: .5rem; }
+
+/* Improve post card vertical rhythm */
+.tweet-card .display-name { line-height: 1.25; }
+
+/* Autosize textarea base styles */
+textarea.autosize { overflow: hidden; resize: none; }
 .tweet-actions { color: var(--text-secondary); }
 .tweet-action-btn {
   border: none;

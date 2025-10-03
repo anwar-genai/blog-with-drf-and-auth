@@ -15,6 +15,7 @@ from follows.models import Follow
 from django.db.utils import OperationalError
 from django.views.decorators.http import require_POST
 from django.template.loader import render_to_string
+import json
 
 
 def index(request: HttpRequest) -> HttpResponse:
@@ -73,12 +74,12 @@ def compose_status(request: HttpRequest) -> HttpResponse:
 def compose_route(request: HttpRequest) -> HttpResponse:
     # Serves a modal-friendly compose form. If requested via AJAX, return just the modal body.
     if not request.user.is_authenticated:
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({'ok': False, 'error': 'Login required.'}, status=403)
+        if request.headers.get('HX-Request') == 'true' or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return HttpResponse(status=403)
         return redirect('accounts:login')
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+    if request.headers.get('HX-Request') == 'true' or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         html = render_to_string('blog/_compose_modal_body.html', {}, request=request)
-        return JsonResponse({ 'ok': True, 'html': html })
+        return HttpResponse(html)
     return render(request, 'blog/compose.html')
 
 
@@ -244,23 +245,28 @@ def add_comment(request: HttpRequest, slug: str) -> HttpResponse:
         comment.post = post
         comment.author = request.user
         comment.save()
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({'ok': True})
+        if request.headers.get('HX-Request') == 'true' or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            # Trigger an HTMX event with the slug so the client can update UI and close modal
+            trigger = json.dumps({ 'reply:success': { 'slug': post.slug } })
+            return HttpResponse(status=204, headers={ 'HX-Trigger': trigger })
         messages.success(request, 'Comment added!')
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return JsonResponse({'ok': False}, status=400)
+    if request.headers.get('HX-Request') == 'true' or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return HttpResponse(status=400)
+    next_url = request.POST.get('next')
+    if next_url:
+        return redirect(next_url)
     return redirect('blog:detail', slug=slug)
 
 
 def reply_route(request: HttpRequest, slug: str) -> HttpResponse:
     post = get_object_or_404(Post.objects.select_related('author'), slug=slug)
     if not request.user.is_authenticated:
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({'ok': False, 'error': 'Login required.'}, status=403)
+        if request.headers.get('HX-Request') == 'true' or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return HttpResponse(status=403)
         return redirect('accounts:login')
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+    if request.headers.get('HX-Request') == 'true' or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         html = render_to_string('blog/_reply_modal_body.html', { 'post': post }, request=request)
-        return JsonResponse({ 'ok': True, 'html': html })
+        return HttpResponse(html)
     return render(request, 'blog/reply.html', { 'post': post })
 
 
