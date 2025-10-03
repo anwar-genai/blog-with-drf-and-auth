@@ -23,74 +23,57 @@
         <button class="btn btn-soft" type="submit">Filter</button>
       </div>
     </form>
-  </div>
-  {% for post in posts %}
-    <article class="tweet-card p-3">
-      <div class="d-flex gap-3">
-        <a href="/accounts/profile/">
-          {% if post.author.profile and post.author.profile.avatar %}
-            <img class="avatar" src="{{ post.author.profile.avatar.url }}" alt="avatar">
-          {% else %}
-            <img class="avatar" src="{% static 'file-icons/file.png' %}" alt="avatar">
-          {% endif %}
-        </a>
-        <div class="flex-grow-1">
-          <div class="d-flex align-items-center flex-wrap">
-            <a href="/blog/post/{{ post.slug }}/" class="text-decoration-none text-dark display-name me-1">{{ post.author.username }}</a>
-            <span class="handle">@{{ post.author.username|lower }}</span>
-            <span class="dot"></span>
-            <span class="handle">{{ post.created_at|timesince }} ago</span>
-          </div>
-          {% if post.title %}
-            <div class="fw-bold mt-1">{{ post.title }}</div>
-          {% endif %}
-          <div class="tweet-content mt-1">
-            {% if post.type == 'poll' %}
-              <div class="small text-secondary">Poll • {{ post.poll_options.count }} options</div>
-              <ul class="small text-secondary mb-2 ps-3">
-                {% for opt in post.poll_options.all|slice:':3' %}
-                  <li>{{ opt.text }}</li>
-                {% endfor %}
-                {% if post.poll_options.count > 3 %}
-                  <li>+{{ post.poll_options.count|add:'-3' }} more…</li>
-                {% endif %}
-              </ul>
-            {% else %}
-              {{ post.content|striptags|truncatewords:40 }}
-            {% endif %}
-          </div>
 
-          <div class="d-flex justify-content-between align-items-center tweet-actions mt-2 me-5">
-            <a href="/blog/post/{{ post.slug }}/" class="btn tweet-action-btn" title="Open">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/><path d="M3 12h12"/></svg>
-            </a>
-            <button class="btn tweet-action-btn" title="Like">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg>
-              <span class="ms-1">{{ post.likes_count }}</span>
-            </button>
-            <a href="/blog/post/{{ post.slug }}/#comments" class="btn tweet-action-btn" title="Comments">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            </a>
+    {% if request.user.is_authenticated %}
+      <form class="d-flex gap-3 py-2" method="post" action="{% url 'blog:compose_status' %}" id="composer-form">
+        {% csrf_token %}
+        <div>
+          {% if request.user.profile and request.user.profile.avatar %}
+            <img class="avatar" src="{{ request.user.profile.avatar.url }}" alt="avatar">
+          {% else %}
+            <div class="avatar bg-secondary-subtle"></div>
+          {% endif %}
+        </div>
+        <div class="flex-grow-1">
+          <textarea name="content" id="composer-input" class="form-control border-0" style="resize:none; background:transparent;" rows="3" placeholder="What's happening?"></textarea>
+          <div class="d-flex align-items-center justify-content-between mt-2">
+            <div class="d-flex align-items-center gap-3 text-secondary">
+              <button type="button" class="btn tweet-action-btn" title="Media">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+              </button>
+              <button type="button" class="btn tweet-action-btn" title="GIF">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><path d="M7 10h3"></path><path d="M14 8v4"></path><path d="M17 8h3"></path></svg>
+              </button>
+              <button type="button" class="btn tweet-action-btn" title="Poll">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="20" x2="6" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="18" y1="20" x2="18" y2="14"></line></svg>
+              </button>
+              <button type="button" class="btn tweet-action-btn" title="Emoji">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+              </button>
+              <button type="button" class="btn tweet-action-btn" title="Schedule">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              </button>
+              <button type="button" class="btn tweet-action-btn" title="Location">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+              </button>
+              <button type="button" class="btn tweet-action-btn" title="More">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+              </button>
+            </div>
+            <button id="composer-post" class="btn btn-brand rounded-pill px-3" disabled>Post</button>
           </div>
         </div>
-        {% if post.type %}
-          <div class="text-end">
-            {% if post.type == 'article' %}
-              <span class="badge text-bg-primary">Article</span>
-            {% elif post.type == 'post' %}
-              <span class="badge text-bg-success">Post</span>
-            {% elif post.type == 'poll' %}
-              <span class="badge text-bg-warning">Poll</span>
-            {% else %}
-              <span class="badge text-bg-secondary">{{ post.type|title }}</span>
-            {% endif %}
-          </div>
-        {% endif %}
-      </div>
-    </article>
+      </form>
+      <div class="border-top mt-2"></div>
+    {% endif %}
+  </div>
+  <div id="feed-list">
+  {% for post in posts %}
+    {% include 'blog/_post_card.html' with post=post %}
   {% empty %}
     <p class="p-3">No posts yet.</p>
   {% endfor %}
+  </div>
   {% if posts.paginator.num_pages > 1 %}
     <nav aria-label="Page navigation" class="bg-white border-top p-3">
       <ul class="pagination justify-content-center mt-2 mb-0">
@@ -124,6 +107,60 @@
       let t=null; input.addEventListener('input', function(){
         clearTimeout(t); t = setTimeout(()=> form.submit(), 400);
       });
+    })();
+  </script>
+  <script>
+    (function(){
+      const input = document.getElementById('composer-input');
+      const btn = document.getElementById('composer-post');
+      const form = document.getElementById('composer-form');
+      const feed = document.getElementById('feed-list');
+      function getCookie(name){
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+          const cookies = document.cookie.split(';');
+          for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+              break;
+            }
+          }
+        }
+        return cookieValue;
+      }
+      if(!input || !btn) return;
+      function update(){ btn.disabled = input.value.trim().length === 0; }
+      input.addEventListener('input', update); update();
+      if(form && feed){
+        form.addEventListener('submit', async function(e){
+          e.preventDefault();
+          if(btn.disabled) return;
+          btn.disabled = true;
+          const content = input.value.trim();
+          try{
+            const res = await fetch(form.action, {
+              method: 'POST',
+              headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': getCookie('csrftoken'), 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+              body: new URLSearchParams({ content })
+            });
+            if(res.ok){
+              const data = await res.json();
+              if(data.ok && data.html){
+                const wrapper = document.createElement('div');
+                wrapper.innerHTML = data.html;
+                const node = wrapper.firstElementChild;
+                if(node){ feed.prepend(node); }
+                input.value = '';
+                update();
+              }
+            }
+          } catch(err) {
+          } finally {
+            btn.disabled = input.value.trim().length === 0;
+          }
+        });
+      }
     })();
   </script>
 {% endblock %}

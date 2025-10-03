@@ -13,6 +13,8 @@ from .forms import (
 )
 from follows.models import Follow
 from django.db.utils import OperationalError
+from django.views.decorators.http import require_POST
+from django.template.loader import render_to_string
 
 
 def index(request: HttpRequest) -> HttpResponse:
@@ -48,6 +50,24 @@ def home(request: HttpRequest) -> HttpResponse:
         posts = posts.none()
     posts = posts[:10]
     return render(request, 'home.html', { 'posts': posts })
+
+
+@login_required
+@require_POST
+def compose_status(request: HttpRequest) -> HttpResponse:
+    content = request.POST.get('content', '').strip()
+    if not content:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'ok': False, 'error': 'Say something to post.'}, status=400)
+        messages.error(request, 'Say something to post.')
+        return redirect('blog:index')
+    post = Post(author=request.user, type=Post.PostType.POST, title='', content=content)
+    post.save()
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        html = render_to_string('blog/_post_card.html', {'post': post}, request=request)
+        return JsonResponse({'ok': True, 'html': html})
+    messages.success(request, 'Posted!')
+    return redirect('blog:index')
 
 
 def detail(request: HttpRequest, slug: str) -> HttpResponse:
