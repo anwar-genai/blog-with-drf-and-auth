@@ -1,0 +1,65 @@
+<form id="compose-modal-form" method="post" action="{% url 'blog:compose_status' %}">
+  {% csrf_token %}
+  <div class="d-flex gap-3">
+    <div>
+      {% if request.user.profile and request.user.profile.avatar %}
+        <img class="avatar" src="{{ request.user.profile.avatar.url }}" alt="avatar">
+      {% else %}
+        <div class="avatar bg-secondary-subtle"></div>
+      {% endif %}
+    </div>
+    <div class="flex-grow-1">
+      <textarea name="content" class="form-control border-0" rows="4" placeholder="What's happening?"></textarea>
+      <div class="d-flex justify-content-end mt-3">
+        <button type="submit" class="btn btn-brand rounded-pill px-3">Post</button>
+      </div>
+    </div>
+  </div>
+</form>
+<script>
+(function(){
+  const form = document.getElementById('compose-modal-form');
+  if(!form) return;
+  function getCookie(name){
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    const textarea = form.querySelector('textarea[name="content"]');
+    const content = textarea.value.trim();
+    if(!content) return;
+    try {
+      const res = await fetch(form.action, {
+        method: 'POST',
+        headers: { 'X-Requested-With':'XMLHttpRequest', 'X-CSRFToken': getCookie('csrftoken'), 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+        body: new URLSearchParams({ content })
+      });
+      if(res.ok){
+        const data = await res.json();
+        if(data.ok && data.html){
+          const feed = document.getElementById('feed-list');
+          if(feed){
+            const wrap = document.createElement('div');
+            wrap.innerHTML = data.html; const node = wrap.firstElementChild; if(node){ feed.prepend(node); }
+          }
+          const modalEl = document.getElementById('composeModal');
+          const instance = bootstrap.Modal.getInstance(modalEl);
+          if(instance){ instance.hide(); }
+        }
+      }
+    } catch(err){}
+  });
+})();
+</script>
+

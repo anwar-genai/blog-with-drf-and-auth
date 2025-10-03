@@ -70,6 +70,18 @@ def compose_status(request: HttpRequest) -> HttpResponse:
     return redirect('blog:index')
 
 
+def compose_route(request: HttpRequest) -> HttpResponse:
+    # Serves a modal-friendly compose form. If requested via AJAX, return just the modal body.
+    if not request.user.is_authenticated:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'ok': False, 'error': 'Login required.'}, status=403)
+        return redirect('accounts:login')
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        html = render_to_string('blog/_compose_modal_body.html', {}, request=request)
+        return JsonResponse({ 'ok': True, 'html': html })
+    return render(request, 'blog/compose.html')
+
+
 def detail(request: HttpRequest, slug: str) -> HttpResponse:
     post = get_object_or_404(Post.objects.select_related('author').prefetch_related('likes', 'comments__author', 'poll_options__voters'), slug=slug)
     comment_form = CommentForm()
@@ -207,12 +219,17 @@ def toggle_like(request: HttpRequest, slug: str) -> HttpResponse:
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
     post = get_object_or_404(Post, slug=slug)
+    liked = False
     if request.user in post.likes.all():
         post.likes.remove(request.user)
+        liked = False
         messages.info(request, 'Unliked post')
     else:
         post.likes.add(request.user)
+        liked = True
         messages.success(request, 'Liked post')
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'ok': True, 'liked': liked, 'count': post.likes.count()})
     return redirect('blog:detail', slug=slug)
 
 
@@ -227,8 +244,24 @@ def add_comment(request: HttpRequest, slug: str) -> HttpResponse:
         comment.post = post
         comment.author = request.user
         comment.save()
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'ok': True})
         messages.success(request, 'Comment added!')
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'ok': False}, status=400)
     return redirect('blog:detail', slug=slug)
+
+
+def reply_route(request: HttpRequest, slug: str) -> HttpResponse:
+    post = get_object_or_404(Post.objects.select_related('author'), slug=slug)
+    if not request.user.is_authenticated:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'ok': False, 'error': 'Login required.'}, status=403)
+        return redirect('accounts:login')
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        html = render_to_string('blog/_reply_modal_body.html', { 'post': post }, request=request)
+        return JsonResponse({ 'ok': True, 'html': html })
+    return render(request, 'blog/reply.html', { 'post': post })
 
 
 @login_required

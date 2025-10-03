@@ -161,7 +161,7 @@
             </nav>
             {% if user.is_authenticated %}
               <div class="mt-3">
-                <a href="/blog/post/new/status/" class="btn btn-brand w-100 tweet-btn">Post</a>
+                <a href="/blog/compose/" class="btn btn-brand w-100 tweet-btn" id="open-compose">Post</a>
               </div>
             {% endif %}
           </div>
@@ -242,6 +242,69 @@
             } catch(err){}
           }
         }catch(err){}
+      })();
+    </script>
+    <div class="modal fade" id="composeModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Compose</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" id="composeModalBody">
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      (function(){
+        const link = document.getElementById('open-compose');
+        const modalEl = document.getElementById('composeModal');
+        const bodyEl = document.getElementById('composeModalBody');
+        if(!link || !modalEl || !bodyEl) return;
+        const modal = new bootstrap.Modal(modalEl);
+        function get(url){ return fetch(url, { headers: { 'X-Requested-With':'XMLHttpRequest' } }); }
+        function openModal(url){
+          get(url).then(r=>r.json()).then(data=>{
+            if(!data.ok) return;
+            bodyEl.innerHTML = data.html;
+            modal.show();
+          });
+        }
+        function handleRoute(){
+          if(location.pathname.endsWith('/blog/compose/')){
+            openModal('/blog/compose/');
+          } else if(location.pathname.includes('/blog/post/') && location.pathname.endsWith('/reply/')){
+            openModal(location.pathname);
+          }
+        }
+        window.addEventListener('popstate', function(e){
+          handleRoute();
+          const instance = bootstrap.Modal.getInstance(modalEl);
+          if(instance && !(location.pathname.endsWith('/blog/compose/') || location.pathname.endsWith('/reply/'))){ instance.hide(); }
+        });
+        link.addEventListener('click', function(ev){
+          ev.preventDefault();
+          const url = this.getAttribute('href');
+          history.pushState({modal:true}, '', url);
+          openModal(url);
+        });
+        // Delegate opening reply modal from feed/comment buttons
+        document.addEventListener('click', function(e){
+          const link = e.target.closest('a[data-reply-url]');
+          if(!link) return;
+          e.preventDefault();
+          const url = link.getAttribute('data-reply-url');
+          history.pushState({modal:true}, '', url);
+          openModal(url);
+        });
+        // Open modal if user lands directly on a modal route
+        handleRoute();
+        modalEl.addEventListener('hidden.bs.modal', function(){
+          if(location.pathname.endsWith('/blog/compose/')){
+            history.back();
+          }
+        });
       })();
     </script>
   </body>

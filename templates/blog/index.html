@@ -129,6 +129,20 @@
         }
         return cookieValue;
       }
+      function getCookie(name){
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+          const cookies = document.cookie.split(';');
+          for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+              break;
+            }
+          }
+        }
+        return cookieValue;
+      }
       if(!input || !btn) return;
       function update(){ btn.disabled = input.value.trim().length === 0; }
       input.addEventListener('input', update); update();
@@ -159,6 +173,24 @@
           } finally {
             btn.disabled = input.value.trim().length === 0;
           }
+        });
+      }
+
+      // Delegate like toggles (no page refresh)
+      if(feed){
+        feed.addEventListener('click', async function(e){
+          const btn = e.target.closest('.like-btn');
+          if(!btn) return;
+          e.preventDefault();
+          const url = btn.getAttribute('data-like-url');
+          try{
+            const res = await fetch(url, { method:'POST', headers:{ 'X-Requested-With':'XMLHttpRequest', 'X-CSRFToken': getCookie('csrftoken') } });
+            if(!res.ok) return;
+            const data = await res.json();
+            if(!data.ok) return;
+            const countEl = btn.querySelector('.like-count');
+            if(countEl){ countEl.textContent = data.count; }
+          }catch(err){}
         });
       }
     })();
