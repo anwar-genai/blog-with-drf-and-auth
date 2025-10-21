@@ -20,15 +20,24 @@
       {% endif %}
       <div class="tweet-content mt-1">
         {% if post.type == 'poll' %}
-          <div class="small text-secondary">Poll • {{ post.poll_options.count }} options</div>
-          <ul class="small text-secondary mb-2 ps-3">
-            {% for opt in post.poll_options.all|slice:':3' %}
-              <li>{{ opt.text }}</li>
-            {% endfor %}
-            {% if post.poll_options.count > 3 %}
-              <li>+{{ post.poll_options.count|add:'-3' }} more…</li>
+          <div class="poll-mini" data-slug="{{ post.slug }}">
+            {% if post.title %}
+              <div class="poll-question">{{ post.title }}</div>
             {% endif %}
-          </ul>
+            <div class="poll-mini-grid">
+              {% for opt in post.poll_options.all|slice:':4' %}
+                <div class="poll-mini-row">
+                  <label class="poll-mini-option">
+                    <input class="poll-choice" type="{% if post.max_choices and post.max_choices > 1 %}checkbox{% else %}radio{% endif %}" name="pm-{{ post.slug }}" data-option-id="{{ opt.id }}" {% if not post.poll_is_open %}disabled{% endif %}>
+                    <span class="text">{{ opt.text }}</span>
+                  </label>
+                  <div class="progress progress-thin" role="progressbar">
+                    <div class="progress-bar" data-id="{{ opt.id }}" style="width: 0%"></div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
         {% else %}
           {{ post.content|striptags|truncatewords:40 }}
         {% endif %}

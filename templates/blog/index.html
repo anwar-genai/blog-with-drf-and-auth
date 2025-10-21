@@ -193,6 +193,29 @@
           }catch(err){}
         });
       }
+      // Poll inline voting
+      if(feed){
+        feed.addEventListener('change', async function(e){
+          const input = e.target.closest('.poll-choice');
+          if(!input) return;
+          const card = input.closest('.poll-mini');
+          if(!card) return;
+          const slug = card.getAttribute('data-slug');
+          const optionId = input.getAttribute('data-option-id');
+          try{
+            const res = await fetch(`/blog/post/${slug}/vote/${optionId}/`, {method:'POST', headers:{ 'X-Requested-With':'XMLHttpRequest', 'X-CSRFToken': getCookie('csrftoken') }});
+            if(!res.ok) return;
+            const data = await res.json();
+            if(!data.ok) return;
+            // update bars and selected state
+            card.classList.add('voted');
+            data.options.forEach(o => {
+              const bar = card.querySelector(`.progress-bar[data-id="${o.id}"]`);
+              if(bar){ bar.style.width = `${o.percent}%`; }
+            });
+          }catch(err){}
+        });
+      }
     })();
   </script>
 {% endblock %}
