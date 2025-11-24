@@ -1,6 +1,6 @@
 {% load static %}
 <article class="tweet-card p-3" id="post-{{ post.slug }}" data-post-slug="{{ post.slug }}">
-  <div class="d-flex gap-3">
+  <div class="d-flex gap-3 align-items-start">
     <a href="/accounts/profile/">
       {% if post.author.profile and post.author.profile.avatar %}
         <img class="avatar" src="{{ post.author.profile.avatar.url }}" alt="avatar">
@@ -14,11 +14,24 @@
         <span class="handle">@{{ post.author.username|lower }}</span>
         <span class="dot"></span>
         <span class="handle">{{ post.created_at|timesince }} ago</span>
+        {% if post.type %}
+          <span class="ms-2">
+            {% if post.type == 'article' %}
+              <span class="badge text-bg-primary">Article</span>
+            {% elif post.type == 'post' %}
+              <span class="badge text-bg-success">Post</span>
+            {% elif post.type == 'poll' %}
+              <span class="badge text-bg-warning">Poll</span>
+            {% else %}
+              <span class="badge text-bg-secondary">{{ post.type|title }}</span>
+            {% endif %}
+          </span>
+        {% endif %}
       </div>
       {% if post.title %}
         <div class="fw-bold mt-1">{{ post.title }}</div>
       {% endif %}
-      <div class="tweet-content mt-1">
+      <div class="tweet-content mt-1 post-content">
         {% if post.type == 'poll' %}
           <div class="poll-mini" data-slug="{{ post.slug }}">
             {% if post.title %}
@@ -39,7 +52,7 @@
             </div>
           </div>
         {% else %}
-          {{ post.content|striptags|truncatewords:40 }}
+          <a href="/blog/post/{{ post.slug }}/" class="text-decoration-none text-reset">{{ post.content|striptags|truncatewords:40 }}</a>
         {% endif %}
       </div>
 
@@ -57,19 +70,7 @@
         </a>
       </div>
     </div>
-    {% if post.type %}
-      <div class="text-end">
-        {% if post.type == 'article' %}
-          <span class="badge text-bg-primary">Article</span>
-        {% elif post.type == 'post' %}
-          <span class="badge text-bg-success">Post</span>
-        {% elif post.type == 'poll' %}
-          <span class="badge text-bg-warning">Poll</span>
-        {% else %}
-          <span class="badge text-bg-secondary">{{ post.type|title }}</span>
-        {% endif %}
-      </div>
-    {% endif %}
+    
   </div>
 </article>
 
