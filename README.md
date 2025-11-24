@@ -45,7 +45,7 @@ uv run daphne -b 127.0.0.1 -p 8000 config.asgi:application
 - Configure `MEDIA_URL` and `MEDIA_ROOT` (already set) for local dev.
 
 ### Polls
-- Create via `New Poll`, add up to 4 options (extendable), set `max_choices`.
+- Create via `New Poll`, add up to 4 options (extendable), set `max_choices`.(needs to be display proper)
 - Votes update live; results bars show counts/percent.
 
 ### Changelog
